@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtualenv
+venv/
+.venv/
+
+# MyPy
+.mypy_cache/
+
+# Pytest
+.pytest_cache/
+
+# IDE / Editor
+.vscode/
+.idea/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Log files
+*.log
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# User config (opzionale)
+.config/
+.env
+
+# Cache generiche
+.cache/
