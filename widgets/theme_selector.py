@@ -4,12 +4,13 @@ gi.require_version("Adw", "1")
 from gi.repository import Gtk, Adw
 
 from utils.settings_manager import SettingsManager
+from components.base import BoxBase
 
 
-class ThemeSwitcher(Gtk.Box):
+class ThemeSwitcher(BoxBase):
     def __init__(self):
-        super().__init__(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
-        
+        super().__init__()
+        self.set_orientation(orientation=Gtk.Orientation.HORIZONTAL)
         self.settings_manager = SettingsManager()
 
         self.theme_model = Gtk.StringList.new(["Sistema", "Chiaro", "Scuro"])
@@ -23,7 +24,7 @@ class ThemeSwitcher(Gtk.Box):
             self.theme_combo.set_selected(0)
 
         self.theme_combo.connect("notify::selected", self.on_theme_change)
-        self.append(Gtk.Label(label="Tema: "))
+        # self.append(Gtk.Label(label="Tema: "))
         self.append(self.theme_combo)
         self.apply_theme(initial)
 

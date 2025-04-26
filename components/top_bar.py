@@ -1,31 +1,17 @@
 import gi
-
-# gi.require_version('Gtc', '4.0')
-
 from gi.repository import Gtk, GObject
 
-from utils.theme_selector import ThemeSwitcher
-from window.buttons import ButtonBase
+from components.base import BoxBase, ButtonBase
+from widgets.theme_selector import ThemeSwitcher
 
-
-class BoxBase(Gtk.Box):
-    def __init__(self):
-    # def __init__(self, on_new_window_callback):
-
-        super().__init__(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
-        self.set_size_request(-1, 40)
-        self.label = Gtk.Label(label="Panel Base")
-        self.append(self.label)
-        self.set_margin_top(6)
-        self.set_margin_bottom(6)
-        self.set_margin_start(6)
-        self.set_margin_end(6)
 
 
 class TopBar(BoxBase):
     def __init__(self, parent_window):
         super().__init__()
-        self.parent_window = parent_window   
+        self.set_orientation(Gtk.Orientation.HORIZONTAL)
+        self.set_size_request(-1, 30)
+        self.parent_window = parent_window  
         
         # Pulsante per creare una nuova finestra
         self.new_window_button = NewWindowButton()
@@ -38,11 +24,13 @@ class TopBar(BoxBase):
         # Espansore spingere il selettore di dark mode a dx
         self.append(Gtk.Box(hexpand=True))
 
+        # Selettore del tema chiaro o scuro
         theme_switcher = ThemeSwitcher()
         self.append(theme_switcher)
 
 
 class NewWindowButton(ButtonBase):
+    '''Open a new window'''
     # Registro il segnale che emetterà
     __gtype_name__ = 'NewWindowButton'
     __gsignals__ = {
@@ -62,6 +50,8 @@ class NewWindowButton(ButtonBase):
 
         
 class CloseWindowButton(ButtonBase):
+    '''Close the current window'''
+
     def __init__(self, parent_window):
         super().__init__()
         self.parent_window = parent_window
