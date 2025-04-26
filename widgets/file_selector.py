@@ -8,6 +8,7 @@ except ValueError:
     pass  # Se Adw non c'è, non esplodere
 
 from gi.repository import Gtk, Gio, GLib
+from components.base import BoxBase, ButtonBase
 
 # Verifica se Gtk.FileDialog è disponibile (GTK 4.12+)
 HAS_FILE_DIALOG = hasattr(Gtk, 'FileDialog')
@@ -15,15 +16,16 @@ HAS_FILE_DIALOG = hasattr(Gtk, 'FileDialog')
 
 class FileSelector(Gtk.Box):
     def __init__(self, parent_window, on_file_selected_callback):
-        super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        super().__init__()
+        self.set_orientation(Gtk.Orientation.VERTICAL)
         self.parent_window = parent_window
 
         # Function to be executed
         self.on_file_selected_callback = on_file_selected_callback
         
-        self.title = Gtk.Label(label="Data to plot")
-        # Left allignment of section title
-        # self.title.set_halign(Gtk.Align.START)
+        self.title = Gtk.Label()
+        self.title.set_markup("<b>Data to plot</b>")
+        self.title.set_halign(Gtk.Align.START)
         self.append(self.title)
 
         # Horizontal box for choosing a file
@@ -31,11 +33,12 @@ class FileSelector(Gtk.Box):
         self.append(self.file_selector)
         
         # Chose a file label
-        self.label = Gtk.Label(label="Chose a file")
+        self.label = Gtk.Label()
+        self.label.set_markup("<i>Chose a file</i>")
         self.file_selector.append(self.label)
 
         # Select file button
-        self.select_button = Gtk.Button()
+        self.select_button = ButtonBase()
         icon = Gtk.Image.new_from_icon_name("document-open-symbolic")
         self.select_button.set_child(icon)
         self.select_button.connect("clicked", self.on_select_file)
@@ -43,12 +46,13 @@ class FileSelector(Gtk.Box):
 
         # Chosen file label
         self.file_label = Gtk.Label(label="No file selected")
+        self.file_label.set_halign(Gtk.Align.START)
         self.append(self.file_label)
 
     # Gestione delle diverse implementazioni tra GTK 4.12+
     def on_select_file(self, button):
         if HAS_FILE_DIALOG:
-            # print("Using Gtk.FileDialog (modern, gtk 4.12+)")
+            print("Using Gtk.FileDialog (modern, gtk 4.12+)")
             self.select_with_file_dialog()
         else:
             print("Using Gtk.FileChooserDialog (legacy, gtk 4.12-)")

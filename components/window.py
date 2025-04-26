@@ -36,24 +36,25 @@ class Window(Gtk.ApplicationWindow):
         self.window_box.append(self.main_area)
 
         self.graph_area = GraphArea()
-        self.main_area.append(self.graph_area)
 
         # Adding the graph area to the context to move around
         # only an object more complete
         context.graph_area = self.graph_area
 
         self.left_sidebar = LeftSidebar(context)
-        self.main_area.prepend(self.left_sidebar)
+        self.main_area.append(self.left_sidebar)
 
         self.vertical_separator = VerticalSeparator()
         self.main_area.append(self.vertical_separator)
 
+        self.main_area.append(self.graph_area)
         
-
         self.vertical_separator1 = VerticalSeparator()
         self.main_area.append(self.vertical_separator1)
 
+
         self.right_sidebar = RightSidebar()
         self.main_area.append(self.right_sidebar)
+        
 
         self.present()

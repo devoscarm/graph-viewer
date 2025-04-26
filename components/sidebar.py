@@ -1,13 +1,15 @@
 
 from gi.repository import Gtk
-from components.base import BoxBase
+from components.base import BoxBase, FrameBase
 
-from components.panel import GraphArea
+from components.panel import GraphArea, OrizontalSeparator
 from widgets.file_selector import FileSelector
 from widgets.column_selector import ColumnSelector
 
 from utils.parse_file import parse_file
 from utils.data_manager import DataManager
+
+
 
 
 
@@ -38,9 +40,13 @@ class LeftSidebar(SidebarBase):
         )
         self.append(self.file_selector)
 
-        print(self.data_manager.file_path)
+        self.orizontal_separator1 = OrizontalSeparator()
+        self.append(self.orizontal_separator1)
+
         self.column_selector = ColumnSelector()
         self.append(self.column_selector)
+        # At first we hide the selector, will appear once a file is chosen
+        self.column_selector.hide()
 
         context.data_manager.set_column_selector(self.column_selector)
         

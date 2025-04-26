@@ -18,6 +18,7 @@ class DataManager:
 
         if self.column_selector:
             self.column_selector.update_columns(self.header)
+            self.column_selector.show()
 
 
     def get_header(self):

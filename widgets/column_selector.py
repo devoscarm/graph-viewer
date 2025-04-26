@@ -2,19 +2,27 @@ import gi
 
 gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk
+from components.base import BoxBase
 
-class ColumnSelector(Gtk.Box):
+class ColumnSelector(BoxBase):
     def __init__(self, on_selection_changed_callback=None):
-        super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=6)
-        print("DENTRO A COLUMN SELECTOR")
+        super().__init__()
+        self.set_orientation=Gtk.Orientation.VERTICAL
         self.on_selection_changed_callback = on_selection_changed_callback
         self.selected_columns = {}  # nome_colonna -> asse (X/Y/None)
 
-        # Titolo
-        self.title = Gtk.Label(label="Select plot columns")
-        self.title.set_halign(Gtk.Align.START)
-        self.title.set_xalign(0.0)
-        self.append(self.title)
+        # Grid for data list and selection
+        self.grid = Gtk.Grid(column_spacing=10, row_spacing=6)
+        self.append(self.grid)
+
+        # Table header
+        header_x = Gtk.Label(label='X', halign=Gtk.Align.CENTER)
+        header_y = Gtk.Label(label='Y', halign=Gtk.Align.CENTER)
+        header_col = Gtk.Label(label='Select data', halign=Gtk.Align.START)
+
+        self.grid.attach(header_x, 0, 1, 1 ,1)
+        self.grid.attach(header_y, 1, 1, 1 ,1)
+        self.grid.attach(header_col, 2, 1, 1 ,1)
 
         
     # Callback function for udating selectable columns
@@ -23,50 +31,38 @@ class ColumnSelector(Gtk.Box):
 
 
     def create_rows(self, header):
-        for col_name in header:
-            row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
-            row.set_hexpand(True)
+        self.rows = {}
+        for idx, col_name in enumerate(header):
+            
+            # Apparently the first 2, are header lines
+            row_idx = idx + 2
 
-            label = Gtk.Label(label=col_name)
-            label.set_halign(Gtk.Align.START)
-            label.set_xalign(0.0)
-            row.append(label)
+            checkbox_x = Gtk.CheckButton()
+            checkbox_y = Gtk.CheckButton()
+            label = Gtk.Label(label=col_name, halign=Gtk.Align.START)
 
-            # Checkbox per X
-            checkbox_x = Gtk.CheckButton(label="X")
-            checkbox_x.connect("toggled", self.on_checkbox_toggled, col_name, "X")
-            row.append(checkbox_x)
+            checkbox_x.connect('toggled', self.on_checkbox_toggled, col_name, 'X')
+            checkbox_y.connect('toggled', self.on_checkbox_toggled, col_name, 'Y')
 
-            # Checkbox per Y
-            checkbox_y = Gtk.CheckButton(label="Y")
-            checkbox_y.connect("toggled", self.on_checkbox_toggled, col_name, "Y")
-            row.append(checkbox_y)
+            self.grid.attach(checkbox_x, 0, row_idx, 1, 1)
+            self.grid.attach(checkbox_y, 1, row_idx, 1, 1)
+            self.grid.attach(label, 2, row_idx, 1, 1)
+            
 
-            # Associo i due bottoni alla colonna
-            row.checkbox_x = checkbox_x
-            row.checkbox_y = checkbox_y
-
-            self.selected_columns[col_name] = "Ignora"
-
-            self.append(row)
+            self.rows[col_name] = (checkbox_x, checkbox_y)
 
     def on_checkbox_toggled(self, checkbox, col_name, axis_type):
-        # Trova il row corrispondente
-        for row in self:
-            if isinstance(row, Gtk.Box) and any(child.get_label() == col_name for child in row):
-                checkbox_x = row.checkbox_x
-                checkbox_y = row.checkbox_y
-
-                if axis_type == "X" and checkbox.get_active():
-                    checkbox_y.set_active(False)
-                    self.selected_columns[col_name] = "X"
-                elif axis_type == "Y" and checkbox.get_active():
-                    checkbox_x.set_active(False)
-                    self.selected_columns[col_name] = "Y"
-                elif not checkbox_x.get_active() and not checkbox_y.get_active():
-                    self.selected_columns[col_name] = "Ignora"
-
-                break
+        # Scompatto la t-upla
+        checkbox_x, checkbox_y = self.rows[col_name]
+        
+        if axis_type == "X" and checkbox.get_active():
+            checkbox_y.set_active(False)
+            self.selected_columns[col_name] = "X"
+        elif axis_type == "Y" and checkbox.get_active():
+            checkbox_x.set_active(False)
+            self.selected_columns[col_name] = "Y"
+        elif not checkbox_x.get_active() and not checkbox_y.get_active():
+            self.selected_columns[col_name] = "Ignora"        
 
         if self.on_selection_changed_callback:
             self.on_selection_changed_callback(self.get_selected_columns())
@@ -79,13 +75,17 @@ class ColumnSelector(Gtk.Box):
         return {col: axis for col, axis in self.selected_columns.items() if axis != "Ignora"}
 
     def update_columns(self, header):
-        # Pulisce le vecchie righe (tranne il titolo)
-        for child in list(self):
-            if child != self.title:
-                self.remove(child)
+        # Rimuove tutti i figli tranne le prime tre intestazioni
+        child = self.grid.get_first_child()
+        count = 0
+        while child:
+            next_child = child.get_next_sibling()
+            if count >= 3:
+                self.grid.remove(child)
+            count += 1
+            child = next_child
 
         self.selected_columns.clear()
+        # self.rows.clear()
 
-        # Ricrea i nuovi elementi
         self.create_rows(header)
-
