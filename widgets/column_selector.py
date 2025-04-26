@@ -21,52 +21,71 @@ class ColumnSelector(Gtk.Box):
     def set_on_selection_changed_callback(self, callback):
         self.on_selection_changed_callback = callback
 
-    def on_checkbox_toggled(self, checkbox, col_name):
-        active = checkbox.get_active()
-        old_axis = self.selected_columns[col_name][1]
-        self.selected_columns[col_name] = (active, old_axis)
-        if self.on_selection_changed_callback:
-            self.on_selection_changed_callback(self.selected_columns)
 
-    def on_axis_changed(self, combo, col_name):
-        axis = combo.get_active_text()
-        old_active = self.selected_columns[col_name][0]
-        self.selected_columns[col_name] = (old_active, axis)
-        if self.on_selection_changed_callback:
-            self.on_selection_changed_callback(self.selected_columns)
-
-    def get_selected_columns(self):
-        """
-        Ritorna dizionario delle colonne selezionate con asse associato.
-        """
-        return {col: axis for col, (active, axis) in self.selected_columns.items() if active and axis != "Ignora"}
-
-
-    def update_columns(self, header):
-        # Prima svuoto tutto tranne il titolo
-        for child in list(self):
-            if child != self.title:
-                self.remove(child)
-
-        self.selected_columns = {}
-
+    def create_rows(self, header):
         for col_name in header:
             row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
             row.set_hexpand(True)
 
-            checkbox = Gtk.CheckButton(label=col_name)
-            checkbox.set_halign(Gtk.Align.START)
-            checkbox.connect("toggled", self.on_checkbox_toggled, col_name)
-            row.append(checkbox)
+            label = Gtk.Label(label=col_name)
+            label.set_halign(Gtk.Align.START)
+            label.set_xalign(0.0)
+            row.append(label)
 
-            axis_selector = Gtk.ComboBoxText()
-            axis_selector.append_text("Ignora")
-            axis_selector.append_text("Asse X")
-            axis_selector.append_text("Asse Y")
-            axis_selector.set_active(0)
-            axis_selector.connect("changed", self.on_axis_changed, col_name)
-            row.append(axis_selector)
+            # Checkbox per X
+            checkbox_x = Gtk.CheckButton(label="X")
+            checkbox_x.connect("toggled", self.on_checkbox_toggled, col_name, "X")
+            row.append(checkbox_x)
+
+            # Checkbox per Y
+            checkbox_y = Gtk.CheckButton(label="Y")
+            checkbox_y.connect("toggled", self.on_checkbox_toggled, col_name, "Y")
+            row.append(checkbox_y)
+
+            # Associo i due bottoni alla colonna
+            row.checkbox_x = checkbox_x
+            row.checkbox_y = checkbox_y
+
+            self.selected_columns[col_name] = "Ignora"
 
             self.append(row)
 
-            self.selected_columns[col_name] = (False, "Ignora")
+    def on_checkbox_toggled(self, checkbox, col_name, axis_type):
+        # Trova il row corrispondente
+        for row in self:
+            if isinstance(row, Gtk.Box) and any(child.get_label() == col_name for child in row):
+                checkbox_x = row.checkbox_x
+                checkbox_y = row.checkbox_y
+
+                if axis_type == "X" and checkbox.get_active():
+                    checkbox_y.set_active(False)
+                    self.selected_columns[col_name] = "X"
+                elif axis_type == "Y" and checkbox.get_active():
+                    checkbox_x.set_active(False)
+                    self.selected_columns[col_name] = "Y"
+                elif not checkbox_x.get_active() and not checkbox_y.get_active():
+                    self.selected_columns[col_name] = "Ignora"
+
+                break
+
+        if self.on_selection_changed_callback:
+            self.on_selection_changed_callback(self.get_selected_columns())
+
+    def get_selected_columns(self):
+        """
+        Ritorna un dizionario delle colonne selezionate con asse associato.
+        Solo colonne che sono assegnate ad X o Y.
+        """
+        return {col: axis for col, axis in self.selected_columns.items() if axis != "Ignora"}
+
+    def update_columns(self, header):
+        # Pulisce le vecchie righe (tranne il titolo)
+        for child in list(self):
+            if child != self.title:
+                self.remove(child)
+
+        self.selected_columns.clear()
+
+        # Ricrea i nuovi elementi
+        self.create_rows(header)
+
