@@ -17,10 +17,9 @@ class Window(Gtk.ApplicationWindow):
         self.app_context = app_context
         self.window_context = WindowContext(window=self)
 
-        self.set_default_size(800, 600)
+        self.set_default_size(900, 600)
         self.set_title('Nuova finestra')
 
-        # self.window_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
         self.window_box = BoxBase()
         self.window_box.set_orientation(Gtk.Orientation.VERTICAL)
         self.set_child(self.window_box)
@@ -45,9 +44,6 @@ class Window(Gtk.ApplicationWindow):
         self.plot_manager = PlotManager(self.graph_area)
         self.window_context.plot_manager = self.plot_manager
 
-        # Adding the graph area to the context to move around
-        # only an object more complete
-        # context.graph_area = self.graph_area
 
         self.left_sidebar = LeftSidebar(self.window_context)
         self.main_area.append(self.left_sidebar)
@@ -64,5 +60,8 @@ class Window(Gtk.ApplicationWindow):
         self.right_sidebar = RightSidebar()
         self.main_area.append(self.right_sidebar)
         
+        
 
         self.present()
+
+        print(f"[Window] Created new window: {self}")

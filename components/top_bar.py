@@ -27,7 +27,7 @@ class TopBar(BoxBase):
         # Selettore del tema chiaro o scuro
         theme_switcher = ThemeSwitcher()
         self.append(theme_switcher)
-
+            
 
 class NewWindowButton(ButtonBase):
     '''

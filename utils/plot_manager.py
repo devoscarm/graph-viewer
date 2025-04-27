@@ -11,6 +11,22 @@ class PlotManager:
         self.header = []
         self.data = []
         self.selected_columns = {}
+        # self.plot_empty()
+        print("[PlotManager]")
+
+        # Creating figure
+        self.figure = Figure(figsize=(10, 10), dpi=100)
+
+        # Creating canvas in the figure or around figure?
+        self.canvas = FigureCanvas(self.figure)
+
+        self.graph_area.append(self.canvas)
+
+        # Creating "Axes"
+        self.ax = self.figure.add_subplot(111)
+
+        self.plot_empty()
+
 
     def set_data(self, header, data):
         self.header = header
@@ -18,6 +34,14 @@ class PlotManager:
 
     def set_selected_columns(self, selected_columns):
         self.selected_columns = selected_columns
+
+    def plot_empty(self):
+        self.ax.clear()
+        self.ax.set_title("No data loaded")
+        self.ax.set_xlabel("X")
+        self.ax.set_ylabel("Y")
+        self.ax.grid(True)
+        self.canvas.draw()
 
     def plot(self):
         if not self.data or not self.selected_columns:

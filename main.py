@@ -43,7 +43,7 @@ class GraphApp(Gtk.Application):
     def create_new_window(self, *args):
         window = Window(self.app_context)
         self.app_context.windows.append(window)
-        print("[GraphApp] Created new window: ", window)
+        print("[GraphApp] Created new window: ", self.app_context.windows)
 
         
 

@@ -24,6 +24,7 @@ class RightSidebar(SidebarBase):
     def __init__(self):
         super().__init__()
         self.label.set_label("Right Sidebar")
+        self.set_size_request(150, -1)
 
 class LeftSidebar(SidebarBase):
     def __init__(self, window_context):
@@ -51,4 +52,5 @@ class LeftSidebar(SidebarBase):
 
         # Passing the ColumnSelector to DataManager that populates it
         window_context.data_manager.set_column_selector(self.column_selector)
+        window_context.data_manager.set_plot_manager(window_context.plot_manager)
         

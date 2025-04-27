@@ -24,6 +24,7 @@ class GraphArea(BoxBase):
         self.set_orientation(Gtk.Orientation.VERTICAL)
         self.set_vexpand(True)
         self.set_hexpand(True)
+        self.set_size_request(200, 200)
 
 
 
