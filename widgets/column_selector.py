@@ -31,6 +31,9 @@ class ColumnSelector(BoxBase):
 
 
     def create_rows(self, header):
+        '''
+        Populates rows of data bin and axis selection
+        '''
         self.rows = {}
         for idx, col_name in enumerate(header):
             
@@ -51,7 +54,12 @@ class ColumnSelector(BoxBase):
 
             self.rows[col_name] = (checkbox_x, checkbox_y)
 
+
     def on_checkbox_toggled(self, checkbox, col_name, axis_type):
+        '''
+        Alternate the choice of X or Y display of the data bin
+        Somehow notify of choices updates
+        '''
         # Scompatto la t-upla
         checkbox_x, checkbox_y = self.rows[col_name]
         
@@ -67,6 +75,7 @@ class ColumnSelector(BoxBase):
         if self.on_selection_changed_callback:
             self.on_selection_changed_callback(self.get_selected_columns())
 
+
     def get_selected_columns(self):
         """
         Ritorna un dizionario delle colonne selezionate con asse associato.
@@ -74,7 +83,11 @@ class ColumnSelector(BoxBase):
         """
         return {col: axis for col, axis in self.selected_columns.items() if axis != "Ignora"}
 
+
     def update_columns(self, header):
+        '''
+        To be called when a different file is selected
+        '''
         # Rimuove tutti i figli tranne le prime tre intestazioni
         child = self.grid.get_first_child()
         count = 0
@@ -86,6 +99,5 @@ class ColumnSelector(BoxBase):
             child = next_child
 
         self.selected_columns.clear()
-        # self.rows.clear()
 
         self.create_rows(header)

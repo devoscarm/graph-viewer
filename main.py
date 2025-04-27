@@ -18,32 +18,36 @@ class GraphApp(Gtk.Application):
     def __init__(self):
         unique_id = f"com.osan.graphviewer.instance_{os.getpid()}"
         super().__init__(application_id=unique_id, flags=Gio.ApplicationFlags.FLAGS_NONE)
-        
+            
+        # 'activate' signal pass as first parametere, the calling app!
         self.connect('activate', self.do_activate)
 
-        # Carico le impostazioni iniziali per tutta l'app
+        # Loading last session app configurations
         self.settings_manager = SettingsManager()
 
-        self.context = AppContext(app=self, settings_manager=self.settings_manager)
+        # Saving useful "global" objects
+        self.app_context = AppContext(
+            app=self, 
+            settings_manager=self.settings_manager
+        )
 
-        # Tutte le finestre che potrebbero essere aperte
-        self.windows = []
         
-
+    # 'activate' signal pass as first parametere, the calling app!
     def do_activate(self, app):
-        print("APP AVVIATA")
+        print("[GraphApp] APPLICATION STARTED!")
         self.create_new_window()
         
-    
+    # 'clicked' signal pass the button pressed and other parameters
+    # *args accept all extra parameters as list
+    # **kwargs accept all extra name parameters as dictionary
     def create_new_window(self, *args):
-        window = Window(self.context)
-        self.windows.append(window)
-        print("NUOVA FINESTRA CREATA: ", self.windows)
+        window = Window(self.app_context)
+        self.app_context.windows.append(window)
+        print("[GraphApp] Created new window: ", window)
 
         
 
 if __name__ == '__main__':
-    print("PROGRAMMA AVVIATO")
     app = GraphApp()
 
     app.run(sys.argv)

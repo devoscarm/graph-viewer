@@ -26,16 +26,17 @@ class RightSidebar(SidebarBase):
         self.label.set_label("Right Sidebar")
 
 class LeftSidebar(SidebarBase):
-    def __init__(self, context):
+    def __init__(self, window_context):
         super().__init__()
+        # self.window_context = window_context
         self.label.set_label("Left Sidebar")
-        self.graph_area = context.graph_area
+        # self.graph_area = context.graph_area
 
         self.data_manager = DataManager()
-        context.data_manager = self.data_manager
+        window_context.data_manager = self.data_manager
 
         self.file_selector = FileSelector(
-            parent_window=context.window,
+            parent_window=window_context.window,
             on_file_selected_callback=self.data_manager.set_file
         )
         self.append(self.file_selector)
@@ -48,5 +49,6 @@ class LeftSidebar(SidebarBase):
         # At first we hide the selector, will appear once a file is chosen
         self.column_selector.hide()
 
-        context.data_manager.set_column_selector(self.column_selector)
+        # Passing the ColumnSelector to DataManager that populates it
+        window_context.data_manager.set_column_selector(self.column_selector)
         

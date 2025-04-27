@@ -7,11 +7,11 @@ from widgets.theme_selector import ThemeSwitcher
 
 
 class TopBar(BoxBase):
-    def __init__(self, context):
+    def __init__(self, parent_window):
         super().__init__()
         self.set_orientation(Gtk.Orientation.HORIZONTAL)
         self.set_size_request(-1, 30)
-        self.parent_window = context.window  
+        self.parent_window = parent_window  
         
         # Pulsante per creare una nuova finestra
         self.new_window_button = NewWindowButton()
@@ -30,8 +30,11 @@ class TopBar(BoxBase):
 
 
 class NewWindowButton(ButtonBase):
-    '''Open a new window'''
-    # Registro il segnale che emetterà
+    '''
+    Opens a new window
+    '''
+
+    # Registering the signal that will be emitted
     __gtype_name__ = 'NewWindowButton'
     __gsignals__ = {
         'new-window-requested': (GObject.SIGNAL_RUN_FIRST, None, ())

@@ -27,14 +27,14 @@ class DataManager:
 
     def set_column_selector(self, column_selector):
         """
-        Connetti il ColumnSelector.
+        Connects the ColumnSelector
         """
         self.column_selector = column_selector
         self.column_selector.set_on_selection_changed_callback(self.on_columns_selected)
 
     def set_plot_manager(self, plot_manager):
         """
-        Connetti il PlotManager.
+        Connects the PlotManager
         """
         self.plot_manager = plot_manager
 
