@@ -5,9 +5,12 @@ from gi.repository import Gtk, Adw
 
 from utils.settings_manager import SettingsManager
 from components.base import BoxBase
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
-class ThemeSwitcher(BoxBase):
+class ThemeSelector(BoxBase):
     def __init__(self):
         super().__init__()
         self.set_orientation(orientation=Gtk.Orientation.HORIZONTAL)
@@ -33,6 +36,7 @@ class ThemeSwitcher(BoxBase):
         theme = ["System", "Light", "Dark"][index]
         self.settings_manager.set_theme(theme)
         self.apply_theme(theme)
+        print(f"[ThemeSwitcher] applied theme '{theme}'")
 
     def apply_theme(self, theme):
         style_manager = Adw.StyleManager.get_default()
@@ -42,3 +46,5 @@ class ThemeSwitcher(BoxBase):
             style_manager.set_color_scheme(Adw.ColorScheme.FORCE_LIGHT)
         elif theme == "Dark":
             style_manager.set_color_scheme(Adw.ColorScheme.FORCE_DARK)
+
+        logger.info(f"Applied theme '{theme}'")

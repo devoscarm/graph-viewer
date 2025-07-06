@@ -2,7 +2,7 @@ import gi
 from gi.repository import Gtk, GObject
 
 from components.base import BoxBase, ButtonBase
-from widgets.theme_selector import ThemeSwitcher
+from widgets.theme_selector import ThemeSelector
 
 
 
@@ -25,8 +25,8 @@ class TopBar(BoxBase):
         self.append(Gtk.Box(hexpand=True))
 
         # Selettore del tema chiaro o scuro
-        theme_switcher = ThemeSwitcher()
-        self.append(theme_switcher)
+        theme_selector = ThemeSelector()
+        self.append(theme_selector)
             
 
 class NewWindowButton(ButtonBase):

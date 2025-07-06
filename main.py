@@ -8,10 +8,9 @@ from gi.repository import Gtk, Gio
 from components.window import Window
 from utils.settings_manager import SettingsManager
 from utils.context import AppContext
+from utils.logger import get_logger
 
-
-
-
+logger = get_logger(__name__)
 
 class GraphApp(Gtk.Application):
 
@@ -34,7 +33,7 @@ class GraphApp(Gtk.Application):
         
     # 'activate' signal pass as first parametere, the calling app!
     def do_activate(self, app):
-        print("[GraphApp] APPLICATION STARTED!")
+        logger.info("APPLICATION ACTIVATED")
         self.create_new_window()
         
     # 'clicked' signal pass the button pressed and other parameters
@@ -43,11 +42,11 @@ class GraphApp(Gtk.Application):
     def create_new_window(self, *args):
         window = Window(self.app_context)
         self.app_context.windows.append(window)
-        print("[GraphApp] Created new window: ", self.app_context.windows)
 
         
 
 if __name__ == '__main__':
     app = GraphApp()
+    logger.info("APPLICATION STARTED")
 
     app.run(sys.argv)

@@ -15,7 +15,7 @@ HAS_FILE_DIALOG = hasattr(Gtk, 'FileDialog')
 
 
 class FileSelector(Gtk.Box):
-    def __init__(self, parent_window, on_file_selected_callback):
+    def __init__(self, parent_window, on_file_selected_callback=None):
         super().__init__()
         self.set_orientation(Gtk.Orientation.VERTICAL)
         self.parent_window = parent_window

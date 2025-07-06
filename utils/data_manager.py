@@ -1,23 +1,28 @@
+
+
+
 class DataManager:
     def __init__(self):
         self.file_path = None
-        self.header = []
-        self.data = []
-        self.column_selector = None
-        self.plot_manager = None
+        self.header = ""            # Data file header
+        self.data = []              # All file data
+        self.fields = []            # Column name (field) chosen to be plot
+        self.dataset =[]            # Column to be plot
+        self.column_selector = None # Sidebar widget for column selection
+        self.plot_manager = None    # Manager of the final plot
 
     def set_file(self, file_path):
         """
         Carica il file e aggiorna header+data.
         """
         self.file_path = file_path
-        self.header, self.data = self.parse_file(file_path)
+        self.parse_file(file_path)
 
         print(f"[DataManager] File caricato: {file_path}")
         print(f"[DataManager] Header: {self.header}")
 
         if self.column_selector:
-            self.column_selector.update_columns(self.header)
+            self.column_selector.update_columns(self.fields)
             self.column_selector.show()
 
 
@@ -43,54 +48,42 @@ class DataManager:
         Richiamato quando l'utente cambia le colonne selezionate.
         """
         print(f"[DataManager] Colonne selezionate: {selected_columns}")
-        self.plot(selected_columns)
-
-    def plot(self, selected_columns=None):
-        """
-        Plotta i dati selezionati.
-        """
-        if not self.data or not self.plot_manager:
-            print("[DataManager] Plot non eseguito: dati o plot manager mancante.")
-            return
-
-        if selected_columns is None and self.column_selector:
-            selected_columns = self.column_selector.get_selected_columns()
-
-        if not selected_columns:
-            print("[DataManager] Nessuna colonna selezionata.")
-            return
-
+        self.select_columns()
         self.plot_manager.set_data(self.header, self.data)
-        self.plot_manager.set_selected_columns(selected_columns)
-        self.plot_manager.plot()
 
+    def select_columns(self):
+        '''
+        Extracts the desired columns from the entire dataset
+        '''
+        print(f"[DataManager] All files: ")
+        for idx, data_row in enumerate(self.data):
+            print(f"{idx} - {data_row}")
 
 
     def parse_file(self, file_path):
         """
-        Parsea file CSV/TXT e restituisce header + dati.
+        Parse a file CSV/TXT and updates the attributes
+        for header, fields and data
         """
-        header = []
-        data = []
+
         separators = [',', '\t', ' ']
 
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
-                first_line = f.readline().strip()
-                separator = self.guess_separator(first_line, separators)
-                header = first_line.split(separator)
+                self.header = f.readline().strip()
+                separator = self.guess_separator(self.header, separators)
+                self.fields = self.header.split(separator)
 
                 for line in f:
                     line = line.strip()
                     if not line:
                         continue
                     row = line.split(separator)
-                    data.append(row)
+                    self.data.append(row)
 
         except Exception as e:
             print(f"[DataManager] Errore parsing file: {e}")
 
-        return header, data
 
     def guess_separator(self, line, separators):
         """

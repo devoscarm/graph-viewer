@@ -6,8 +6,9 @@ from components.panel import MainArea, GraphArea, OrizontalSeparator, VerticalSe
 from components.sidebar import LeftSidebar, RightSidebar
 from utils.plot_manager import PlotManager
 from utils.context import WindowContext
+from utils.logger import get_logger
 
-
+logger = get_logger(__name__)
 
 
 
@@ -64,4 +65,4 @@ class Window(Gtk.ApplicationWindow):
 
         self.present()
 
-        print(f"[Window] Created new window: {self}")
+        logger.info(f"Created new window")

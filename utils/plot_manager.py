@@ -4,6 +4,9 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_gtk4agg import FigureCanvasGTK4Agg as FigureCanvas
 
 from gi.repository import Gtk
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 class PlotManager:
     def __init__(self, graph_area):
@@ -12,7 +15,7 @@ class PlotManager:
         self.data = []
         self.selected_columns = {}
         # self.plot_empty()
-        print("[PlotManager]")
+
 
         # Creating figure
         self.figure = Figure(figsize=(10, 10), dpi=100)
@@ -31,6 +34,7 @@ class PlotManager:
     def set_data(self, header, data):
         self.header = header
         self.data = data
+        self.plot()
 
     def set_selected_columns(self, selected_columns):
         self.selected_columns = selected_columns
@@ -42,14 +46,13 @@ class PlotManager:
         self.ax.set_ylabel("Y")
         self.ax.grid(True)
         self.canvas.draw()
+        logger.info("Plot empty")
 
     def plot(self):
         if not self.data or not self.selected_columns:
-            print("[PlotManager] No data or no columns selected.")
-            return
+            logger("No data columns selected")
+            # return
         
-        figure = Figure(figsize=(5, 4), dpi=100)
-        ax = figure.add_subplot(1, 1, 1)
 
         x_data = []
         y_data = []
@@ -71,15 +74,14 @@ class PlotManager:
                 x_data.append(x_val)
                 y_data.append(y_val)
 
-        ax.plot(x_data, y_data)
-        ax.set_xlabel("X axis")
-        ax.set_ylabel("Y axis")
-        ax.set_title("Plot")
+        self.ax.plot(x_data, y_data)
+        self.ax.set_xlabel("X axis")
+        self.ax.set_ylabel("Y axis")
+        self.ax.set_title("Plot")
 
         # Rimuovi grafici vecchi dalla graph_area
-        for child in self.graph_area.get_children():
-            self.graph_area.remove(child)
+        # for child in self.graph_area.get_children():
+        # self.graph_area.remove(child)
 
-        canvas = FigureCanvas(figure)
-        self.graph_area.append(canvas)
-        canvas.show()
+        
+        self.canvas.show()

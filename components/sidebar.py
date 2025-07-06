@@ -1,12 +1,11 @@
 
 from gi.repository import Gtk
-from components.base import BoxBase, FrameBase
+from components.base import BoxBase
 
-from components.panel import GraphArea, OrizontalSeparator
+from components.panel import OrizontalSeparator
 from widgets.file_selector import FileSelector
 from widgets.column_selector import ColumnSelector
 
-from utils.parse_file import parse_file
 from utils.data_manager import DataManager
 
 

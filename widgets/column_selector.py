@@ -27,6 +27,9 @@ class ColumnSelector(BoxBase):
         
     # Callback function for udating selectable columns
     def set_on_selection_changed_callback(self, callback):
+        '''
+        Set the callback function to be called when the selection of columns, changes
+        '''
         self.on_selection_changed_callback = callback
 
 
@@ -70,9 +73,10 @@ class ColumnSelector(BoxBase):
             checkbox_x.set_active(False)
             self.selected_columns[col_name] = "Y"
         elif not checkbox_x.get_active() and not checkbox_y.get_active():
-            self.selected_columns[col_name] = "Ignora"        
+            self.selected_columns[col_name] = "Ignore"        
 
         if self.on_selection_changed_callback:
+            # If a callback function is set, we return through it, the selected columns
             self.on_selection_changed_callback(self.get_selected_columns())
 
 
@@ -81,7 +85,7 @@ class ColumnSelector(BoxBase):
         Ritorna un dizionario delle colonne selezionate con asse associato.
         Solo colonne che sono assegnate ad X o Y.
         """
-        return {col: axis for col, axis in self.selected_columns.items() if axis != "Ignora"}
+        return {col: axis for col, axis in self.selected_columns.items() if axis != "Ignore"}
 
 
     def update_columns(self, header):
