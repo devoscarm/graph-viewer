@@ -36,7 +36,7 @@ class ThemeSelector(BoxBase):
         theme = ["System", "Light", "Dark"][index]
         self.settings_manager.set_theme(theme)
         self.apply_theme(theme)
-        print(f"[ThemeSwitcher] applied theme '{theme}'")
+        logger.info(f"Applied theme '{theme}'")
 
     def apply_theme(self, theme):
         style_manager = Adw.StyleManager.get_default()
@@ -47,4 +47,3 @@ class ThemeSelector(BoxBase):
         elif theme == "Dark":
             style_manager.set_color_scheme(Adw.ColorScheme.FORCE_DARK)
 
-        logger.info(f"Applied theme '{theme}'")

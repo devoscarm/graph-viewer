@@ -46,7 +46,7 @@ class Window(Gtk.ApplicationWindow):
         self.window_context.plot_manager = self.plot_manager
 
 
-        self.left_sidebar = LeftSidebar(self.window_context)
+        self.left_sidebar = LeftSidebar(self.window_context, self.app_context)
         self.main_area.append(self.left_sidebar)
 
         self.vertical_separator = VerticalSeparator()
