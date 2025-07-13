@@ -14,8 +14,6 @@ class PlotManager:
         self.header = []
         self.data = []
         self.selected_columns = {}
-        # self.plot_empty()
-
 
         # Creating figure
         self.figure = Figure(figsize=(10, 10), dpi=100)
@@ -30,8 +28,14 @@ class PlotManager:
 
         self.plot_empty()
 
+    
+    def set_data(self, data_block):
+        self.data = data_block
+        self.plot()
 
-    def set_data(self, header, data):
+
+
+    def set_data_old(self, header, data):
         self.header = header
         self.data = data
         self.plot()
@@ -48,11 +52,43 @@ class PlotManager:
         self.canvas.draw()
         logger.info("Plot empty")
 
+
+
     def plot(self):
+        self.ax.clear()
+
+        if not self.data:
+            self.plot_empty()
+            return
+
+        for block_index, (header, xy_data) in enumerate(self.data.items()):
+
+            # logger.debug(header)
+            # for row in xy_data:
+            #     logger.debug(row)
+                
+            if not xy_data:
+                continue
+            x_data, y_data = zip(*xy_data)
+            # label = " - ".join(header) if isinstance(header, tuple) else str(header)
+            label = f"Block {block_index + 1}"
+            self.ax.plot(x_data, y_data, label=label)
+
+        self.ax.set_xlabel("X axis")
+        self.ax.set_ylabel("Y axis")
+        self.ax.set_title("Plot")
+        self.ax.grid(True)
+        self.ax.legend()
+        self.canvas.draw()
+
+
+
+    def plot_old(self):
         if not self.data or not self.selected_columns:
-            logger("No data columns selected")
-            # return
-        
+            logger.info(f"No data columns selected > {self.selected_columns}")
+
+        #logger.info(f"Columns selected > {self.selected_columns}") 
+        # logger.info       
 
         x_data = []
         y_data = []

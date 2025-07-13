@@ -1,107 +1,194 @@
+
 import gi
 
 gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk
 from components.base import BoxBase
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 class ColumnSelector(BoxBase):
     def __init__(self, on_selection_changed_callback=None):
         super().__init__()
-        self.set_orientation=Gtk.Orientation.VERTICAL
+        self.set_orientation(Gtk.Orientation.VERTICAL)
         self.on_selection_changed_callback = on_selection_changed_callback
-        self.selected_columns = {}  # nome_colonna -> asse (X/Y/None)
+        self.selected_columns = {}  # blocco -> {colonna -> asse}
 
-        # Grid for data list and selection
-        self.grid = Gtk.Grid(column_spacing=10, row_spacing=6)
-        self.append(self.grid)
+        # Interruttore per modalità uniforme
+        self.uniform_switch = Gtk.Switch()
+        self.uniform_switch.set_active(False)
+        self.uniform_switch.connect("notify::active", self.on_uniform_mode_toggled)
 
-        # Table header
-        header_x = Gtk.Label(label='X', halign=Gtk.Align.CENTER)
-        header_y = Gtk.Label(label='Y', halign=Gtk.Align.CENTER)
-        header_col = Gtk.Label(label='Select data', halign=Gtk.Align.START)
+        switch_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        switch_box.append(Gtk.Label(label="Uniform column"))
+        switch_box.append(self.uniform_switch)
+        self.append(switch_box)
 
-        self.grid.attach(header_x, 0, 1, 1 ,1)
-        self.grid.attach(header_y, 1, 1, 1 ,1)
-        self.grid.attach(header_col, 2, 1, 1 ,1)
+        self.scrolled = Gtk.ScrolledWindow()
+        self.scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        self.append(self.scrolled)
 
-        
-    # Callback function for udating selectable columns
+        self.block_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+        self.scrolled.set_child(self.block_box)
+
+        self.blocks = []
+
     def set_on_selection_changed_callback(self, callback):
-        '''
-        Set the callback function to be called when the selection of columns, changes
-        '''
         self.on_selection_changed_callback = callback
 
+    def on_checkbox_toggled(self, checkbox, header, col_name, axis_type):
+        is_active = checkbox.get_active()
 
-    def create_rows(self, header):
-        '''
-        Populates rows of data bin and axis selection
-        '''
-        self.rows = {}
-        for idx, col_name in enumerate(header):
-            
-            # Apparently the first 2, are header lines
-            row_idx = idx + 2
+        if self.uniform_switch.get_active():
+            self._propagate_uniform_change(col_index=self._get_column_index(header, col_name),
+                                        axis_type=axis_type,
+                                        is_active=is_active)
+        else:
+            checkbox_x, checkbox_y = self._get_row_widgets(header, col_name)
 
-            checkbox_x = Gtk.CheckButton()
-            checkbox_y = Gtk.CheckButton()
-            label = Gtk.Label(label=col_name, halign=Gtk.Align.START)
+            if axis_type == "X":
+                if is_active:
+                    checkbox_y.set_active(False)
+                    self.selected_columns[header][col_name] = "X"
+                else:
+                    if not checkbox_y.get_active():
+                        self.selected_columns[header][col_name] = "Ignore"
+            elif axis_type == "Y":
+                if is_active:
+                    checkbox_x.set_active(False)
+                    self.selected_columns[header][col_name] = "Y"
+                else:
+                    if not checkbox_x.get_active():
+                        self.selected_columns[header][col_name] = "Ignore"
 
-            checkbox_x.connect('toggled', self.on_checkbox_toggled, col_name, 'X')
-            checkbox_y.connect('toggled', self.on_checkbox_toggled, col_name, 'Y')
-
-            self.grid.attach(checkbox_x, 0, row_idx, 1, 1)
-            self.grid.attach(checkbox_y, 1, row_idx, 1, 1)
-            self.grid.attach(label, 2, row_idx, 1, 1)
-            
-
-            self.rows[col_name] = (checkbox_x, checkbox_y)
+            if self.on_selection_changed_callback:
+                self.on_selection_changed_callback(self.get_selected_columns())
 
 
-    def on_checkbox_toggled(self, checkbox, col_name, axis_type):
-        '''
-        Alternate the choice of X or Y display of the data bin
-        Somehow notify of choices updates
-        '''
-        # Scompatto la t-upla
-        checkbox_x, checkbox_y = self.rows[col_name]
-        
-        if axis_type == "X" and checkbox.get_active():
-            checkbox_y.set_active(False)
-            self.selected_columns[col_name] = "X"
-        elif axis_type == "Y" and checkbox.get_active():
-            checkbox_x.set_active(False)
-            self.selected_columns[col_name] = "Y"
-        elif not checkbox_x.get_active() and not checkbox_y.get_active():
-            self.selected_columns[col_name] = "Ignore"        
+
+
+    def _propagate_uniform_change(self, col_index, axis_type, is_active):
+        if not self._all_blocks_have_same_length():
+            logger.warning("Uniform selection skipped: structures differ.")
+            return
+
+        for block in self.blocks:
+            block_key = block['key']
+            col_names = list(block['rows'].keys())
+            if col_index >= len(col_names):
+                continue
+
+            col_name = col_names[col_index]
+            cbx, cby = block['rows'][col_name]
+
+            # Blocca i segnali per evitare ricorsione
+            cbx.handler_block_by_func(self.on_checkbox_toggled)
+            cby.handler_block_by_func(self.on_checkbox_toggled)
+
+            if axis_type == "X":
+                cbx.set_active(is_active)
+                cby.set_active(False)
+                self.selected_columns[block_key][col_name] = "X" if is_active else "Ignore"
+            elif axis_type == "Y":
+                cby.set_active(is_active)
+                cbx.set_active(False)
+                self.selected_columns[block_key][col_name] = "Y" if is_active else "Ignore"
+
+            cbx.handler_unblock_by_func(self.on_checkbox_toggled)
+            cby.handler_unblock_by_func(self.on_checkbox_toggled)
 
         if self.on_selection_changed_callback:
-            # If a callback function is set, we return through it, the selected columns
             self.on_selection_changed_callback(self.get_selected_columns())
 
 
+
+    def _get_column_index(self, header, col_name):
+        for block in self.blocks:
+            if block['key'] == header:
+                try:
+                    return list(block['rows'].keys()).index(col_name)
+                except ValueError:
+                    return -1
+        return -1
+
+
+
     def get_selected_columns(self):
-        """
-        Ritorna un dizionario delle colonne selezionate con asse associato.
-        Solo colonne che sono assegnate ad X o Y.
-        """
-        return {col: axis for col, axis in self.selected_columns.items() if axis != "Ignore"}
+        return {
+            block_key: {
+                col: axis for col, axis in cols.items() if axis != "Ignore"
+            }
+            for block_key, cols in self.selected_columns.items()
+        }
 
-
-    def update_columns(self, header):
-        '''
-        To be called when a different file is selected
-        '''
-        # Rimuove tutti i figli tranne le prime tre intestazioni
-        child = self.grid.get_first_child()
-        count = 0
-        while child:
-            next_child = child.get_next_sibling()
-            if count >= 3:
-                self.grid.remove(child)
-            count += 1
-            child = next_child
-
+    def update_blocks(self, block_headers: dict):
+        self.blocks.clear()
         self.selected_columns.clear()
 
-        self.create_rows(header)
+        child = self.block_box.get_first_child()
+        while child:
+            next_child = child.get_next_sibling()
+            self.block_box.remove(child)
+            child = next_child
+
+        for index, (header, _) in enumerate(block_headers.items()):
+            grid = Gtk.Grid(column_spacing=10, row_spacing=6)
+            label = Gtk.Label(label=f"Block {index+1}")
+            label.get_style_context().add_class("heading")
+            grid.attach(label, 0, 0, 3, 1)
+
+            grid.attach(Gtk.Label(label="X"), 0, 1, 1, 1)
+            grid.attach(Gtk.Label(label="Y"), 1, 1, 1, 1)
+            grid.attach(Gtk.Label(label="Column"), 2, 1, 1, 1)
+
+            rows = {}
+            for i, col_name in enumerate(header):
+                checkbox_x = Gtk.CheckButton()
+                checkbox_y = Gtk.CheckButton()
+                label = Gtk.Label(label=col_name, halign=Gtk.Align.START)
+
+                checkbox_x.connect("toggled", self.on_checkbox_toggled, header, col_name, "X")
+                checkbox_y.connect("toggled", self.on_checkbox_toggled, header, col_name, "Y")
+
+                grid.attach(checkbox_x, 0, i + 2, 1, 1)
+                grid.attach(checkbox_y, 1, i + 2, 1, 1)
+                grid.attach(label, 2, i + 2, 1, 1)
+
+                rows[col_name] = (checkbox_x, checkbox_y)
+
+            self.blocks.append({'key': header, 'rows': rows})
+            self.selected_columns[header] = {}
+            self.block_box.append(grid)
+            grid.set_vexpand(True)
+
+    def _get_row_widgets(self, block_key, col_name):
+        for block in self.blocks:
+            if block['key'] == block_key:
+                return block['rows'][col_name]
+        return None, None
+
+    def _all_blocks_have_same_length(self):
+        if len(self.blocks) < 2:
+            return True
+        first_len = len(self.blocks[0]['rows'])
+        for block in self.blocks[1:]:
+            if len(block['rows']) != first_len:
+                return False
+        return True
+
+    def on_uniform_mode_toggled(self, switch, _):
+        logger.debug(f"on_uniform_mode_toggled: {switch.get_active()}")
+        if not switch.get_active():
+            self.selected_columns = {k: {} for k in self.selected_columns.keys()}
+            for block in self.blocks:
+                for cbx, cby in block['rows'].values():
+                    cbx.handler_block_by_func(self.on_checkbox_toggled)
+                    cby.handler_block_by_func(self.on_checkbox_toggled)
+                    cbx.set_active(False)
+                    cby.set_active(False)
+                    cbx.handler_unblock_by_func(self.on_checkbox_toggled)
+                    cby.handler_unblock_by_func(self.on_checkbox_toggled)
+
+            if self.on_selection_changed_callback:
+                self.on_selection_changed_callback(self.get_selected_columns())
