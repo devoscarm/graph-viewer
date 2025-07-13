@@ -52,7 +52,7 @@ class FolderSelector(Gtk.Box):
             folder = dialog.select_folder_finish(result)
             folder_path = folder.get_path()
             self.folder_label.set_label(folder_path)
-            self.set_tooltip_text(folder_path)
+            #self.set_tooltip_text(folder_path)
             if self.on_folder_selected_callback:
                 self.on_folder_selected_callback(folder_path)
         except Exception as e:
@@ -87,7 +87,7 @@ class FolderSelector(Gtk.Box):
             file = dialog.get_file()
             if file:
                 folder_path = file.get_path()
-                self.set_tooltip_text(folder_path)
+                #self.set_tooltip_text(folder_path)
                 #self.folder_label.set_label(folder_path)
                 if self.on_folder_selected_callback:
                     self.on_folder_selected_callback(folder_path)

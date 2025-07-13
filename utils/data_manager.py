@@ -7,163 +7,72 @@ logger = get_logger(__name__)
 class DataManager:
     def __init__(self):
         self.file_path = None
-        self.header = ""            # Data file header
-        self.data = []              # All file data
-        self.fields = []            # Column name (field) chosen to be plot
-        self.blocks = {}            # To stock {header: [data], } read from file
-        self.column_selector = None # Sidebar widget for column selection
-        self.plot_manager = None    # Manager of the final plot
+        self.blocks = {}
+        self.column_selector = None
+        self.plot_manager = None
+        self.current_curves = set()
+
 
     def set_file(self, file_path):
-        """
-        Carica il file e aggiorna header+data.
-        """
         self.file_path = file_path
         self.parse_file(file_path)
 
-        logger.info(f"File loaded > {file_path}")
-        
-
-        # When I load a file, if there is already a column_selector
-        # (of previous file), we update the column_selector
         if self.column_selector:
-            # self.column_selector.update_columns(self.fields)
             self.column_selector.update_blocks(self.blocks)
             self.column_selector.show()
 
-        # Wiping previous plot as we changed file
         if self.plot_manager:
-            self.plot_manager.plot_empty()
+            self.plot_manager.clear_all_curves()
 
-
-    def get_header(self):
-        return self.header
-    
-    def print_data(self):
-        for line in self.data:
-            print(line)
-        
-
+        self.current_curves.clear()
 
     def set_column_selector(self, column_selector):
-        """
-        Connects the ColumnSelector
-        """
         self.column_selector = column_selector
         self.column_selector.set_on_selection_changed_callback(self.on_columns_selected)
 
     def set_plot_manager(self, plot_manager):
-        """
-        Connects the PlotManager
-        """
         self.plot_manager = plot_manager
 
-
-
-
     def on_columns_selected(self, selected_columns):
-        """
-        Richiamato quando l'utente cambia le colonne selezionate.
-        """
-        # logger.info(f"Columns selected: > {selected_columns}")
-        # for key, values in selected_columns.items():
-        #     print(key)
-        #     for value, col in values.items():
-        #         print(value, " > ", col)
+        new_curves = set()
+        data_to_add = {}
 
-        selected_data = self.select_columns(selected_columns)
-
-        #print(selected_data)
-
-        
-        # Trasforma da dict con due liste → lista di tuple (x, y)
-        data_per_block = {
-            header: list(zip(x_vals, y_vals))
-            for header, (x_vals, y_vals) in selected_data.items()
-            if x_vals and y_vals
-        }
-        self.plot_manager.set_data(data_per_block)
-
-
-    
-
-
-    def on_columns_selected_new(self, selected_columns):
-        selected_data = self.select_columns(selected_columns)
-        for header, (x_data, y_data, x_name, y_name) in selected_data.items():
-            self.plot_data(x_data, y_data, x_name, y_name, header)
-
-
-    def select_columns(self, selected_columns):
-        result = {}
-        for header, col_selection in selected_columns.items():
-            if header not in self.blocks:
-                continue
-            x_idx = y_idx = None
-            x_name = y_name = None
-            for col, axis in col_selection.items():
-                if axis == "X":
-                    x_name = col
-                    x_idx = header.index(col)
-                elif axis == "Y":
-                    y_name = col
-                    y_idx = header.index(col)
-            if x_idx is not None and y_idx is not None:
-                x_data = []
-                y_data = []
-                for row in self.blocks[header]:
-                    try:
-                        x_data.append(float(row[x_idx]))
-                        y_data.append(float(row[y_idx]))
-                    except Exception:
-                        continue
-                result[header] = (np.array(x_data), np.array(y_data), x_name, y_name)
-        return result
-
-
-
-
-
-
-    def select_columns_old(self, selected_columns):
-        """
-        Estrae le colonne selezionate da ogni blocco.
-        Ritorna un dizionario: header → (X_data, Y_data)
-        """
-
-        data_per_block = {}
-        for header, cols in selected_columns.items():
-
-            if header not in self.blocks:
-                continue
-            rows = self.blocks[header]
+        for header, col_map in selected_columns.items():
+            rows = self.blocks.get(header, [])
             field_names = list(header)
-            x_idx = y_idx = None
-            for col_name, axis in cols.items():
-                if col_name in field_names:
-                    idx = field_names.index(col_name)
-                    if axis == 'X':
-                        x_idx = idx
-                    elif axis == 'Y':
-                        y_idx = idx
 
-            if x_idx is not None and y_idx is not None:
-                x_data = []
-                y_data = []
-                for row in rows:
-                    try:
-                        x_val = float(row[x_idx])
-                        y_val = float(row[y_idx])
-                        x_data.append(x_val)
-                        y_data.append(y_val)
-                    except ValueError:
+            x_names = [col for col, axis in col_map.items() if axis == "X"]
+            y_names = [col for col, axis in col_map.items() if axis == "Y"]
+
+            for x_name in x_names:
+                if x_name not in field_names:
+                    continue
+                x_idx = field_names.index(x_name)
+                x_vals = [float(r[x_idx]) for r in rows if self.is_float(r[x_idx])]
+
+                for y_name in y_names:
+                    if y_name not in field_names:
                         continue
-                data_per_block[header] = (x_data, y_data)
+                    y_idx = field_names.index(y_name)
+                    y_vals = [float(r[y_idx]) for r in rows if self.is_float(r[y_idx])]
+                    if len(x_vals) != len(y_vals):
+                        continue
+                    curve_id = (header, x_name, y_name)
+                    new_curves.add(curve_id)
+                    data_to_add[curve_id] = (x_vals, y_vals)
 
-        return data_per_block    
+        # Rimuovi curve non più selezionate
+        for curve_id in self.current_curves - new_curves:
+            block_id, x_name, y_name = curve_id
+            self.plot_manager.remove_curve(block_id, x_name, y_name)
 
+        # Aggiungi nuove curve
+        for curve_id in new_curves - self.current_curves:
+            block_id, x_name, y_name = curve_id
+            x_vals, y_vals = data_to_add[curve_id]
+            self.plot_manager.add_curve(block_id, x_name, y_name, x_vals, y_vals, subplot_id="default")
 
-
+        self.current_curves = new_curves
 
 
    

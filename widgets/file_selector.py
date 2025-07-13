@@ -40,12 +40,6 @@ class FileSelector(Gtk.Box):
         self.dir_selector = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         self.append(self.dir_selector)
 
-        # Title of the plotting section
-        self.title = Gtk.Label()
-        self.title.set_markup("<b>Data to plot from folder</b>")
-        self.title.set_halign(Gtk.Align.START)
-        self.dir_selector.append(self.title)
-
         # Directory selector button
         self.folder_selector = FolderSelector(
             parent_window=self.parent_window,
@@ -53,15 +47,21 @@ class FileSelector(Gtk.Box):
         )
         self.dir_selector.append(self.folder_selector) 
 
+        # Title of the plotting section
+        self.dir_label = Gtk.Label()
+        #self.title.set_markup("Chose a folder")
+        #self.title.set_halign(Gtk.Align.START)
+        self.dir_selector.append(self.dir_label)
+
+        if hasattr(self, "settings_manager"):
+            self.dir_label.set_label(self.settings_manager.get_plotting_directory())
+        else:
+            self.dir_label.set_label("Chose a folder")
+
 
         # Horizontal box for choosing a file
         self.file_selector = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         self.append(self.file_selector)
-        
-        # Chose a file label
-        self.label = Gtk.Label()
-        self.label.set_markup("<i>No file selected</i>")
-        self.file_selector.append(self.label)
 
         # Select file button
         self.select_button = ButtonBase()
@@ -70,6 +70,11 @@ class FileSelector(Gtk.Box):
         self.select_button.connect("clicked", self.on_select_file)
         self.select_button.set_tooltip_text("Open a file")
         self.file_selector.append(self.select_button)
+
+        # Chose a file label
+        self.file_label = Gtk.Label()
+        self.file_label.set_markup("<i>No file selected</i>")
+        self.file_selector.append(self.file_label)
 
 
 
@@ -134,7 +139,7 @@ class FileSelector(Gtk.Box):
                 file_name = os.path.basename(file_path)
                 #self.file_label.set_label(file_name)
 
-                self.label.set_label(file_name)
+                self.file_label.set_label(file_name)
 
                 #self.file_label.set_tooltip_text(file_path)
                 if self.on_file_selected_callback:
@@ -148,6 +153,7 @@ class FileSelector(Gtk.Box):
     def set_plotting_directory(self, folder_path):
         logger.info(f"Plotting directory set to > {folder_path}")
         self.plotting_directory = folder_path
+        self.dir_label.set_label(folder_path)
 
         if hasattr(self, "settings_manager"):
             self.settings_manager.set_plotting_directory(folder_path)

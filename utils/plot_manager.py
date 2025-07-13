@@ -11,113 +11,56 @@ logger = get_logger(__name__)
 class PlotManager:
     def __init__(self, graph_area):
         self.graph_area = graph_area
-        self.header = []
-        self.data = []
-        self.selected_columns = {}
-
-        # Creating figure
-        self.figure = Figure(figsize=(10, 10), dpi=100)
-
-        # Creating canvas in the figure or around figure?
+        self.figure = Figure(figsize=(10, 8), dpi=100)
         self.canvas = FigureCanvas(self.figure)
-
         self.graph_area.append(self.canvas)
 
-        # Creating "Axes"
-        self.ax = self.figure.add_subplot(111)
+        self.subplots = {"default": self.figure.add_subplot(1, 1, 1)}
+        self.curves = {"default": {}}
 
-        self.plot_empty()
-
-    
-    def set_data(self, data_block):
-        self.data = data_block
-        self.plot()
-
-
-
-    def set_data_old(self, header, data):
-        self.header = header
-        self.data = data
-        self.plot()
-
-    def set_selected_columns(self, selected_columns):
-        self.selected_columns = selected_columns
-
-    def plot_empty(self):
-        self.ax.clear()
-        self.ax.set_title("No data loaded")
-        self.ax.set_xlabel("X")
-        self.ax.set_ylabel("Y")
-        self.ax.grid(True)
-        self.canvas.draw()
-        logger.info("Plot empty")
+    def clear_all_curves(self):
+        ax = self.subplots["default"]
+        for line in self.curves["default"].values():
+            line.remove()
+        self.curves["default"].clear()
+        ax.legend()
+        self._refresh_all_plots()
 
 
+    def add_curve(self, block_id, x_name, y_name, x_vals, y_vals, subplot_id="default"):
+        curve_id = f"{block_id}::{x_name}->{y_name}"
+        if subplot_id not in self.subplots:
+            self.subplots[subplot_id] = self.figure.add_subplot(1, 1, 1)  # per ora, 1x1 layout
+            self.curves[subplot_id] = {}
 
-    def plot(self):
-        self.ax.clear()
-
-        if not self.data:
-            self.plot_empty()
+        if curve_id in self.curves[subplot_id]:
             return
 
-        for block_index, (header, xy_data) in enumerate(self.data.items()):
+        ax = self.subplots[subplot_id]
+        line, = ax.plot(x_vals, y_vals, label=curve_id)
+        self.curves[subplot_id][curve_id] = line
+        ax.legend()
+        self._refresh_all_plots()
 
-            # logger.debug(header)
-            # for row in xy_data:
-            #     logger.debug(row)
-                
-            if not xy_data:
-                continue
-            x_data, y_data = zip(*xy_data)
-            # label = " - ".join(header) if isinstance(header, tuple) else str(header)
-            label = f"Block {block_index + 1}"
-            self.ax.plot(x_data, y_data, label=label)
 
-        self.ax.set_xlabel("X axis")
-        self.ax.set_ylabel("Y axis")
-        self.ax.set_title("Plot")
-        self.ax.grid(True)
-        self.ax.legend()
+    def remove_curve(self, block_id, x_name, y_name, subplot_id="default"):
+        curve_id = f"{block_id}::{x_name}->{y_name}"
+        if subplot_id in self.curves and curve_id in self.curves[subplot_id]:
+            line = self.curves[subplot_id].pop(curve_id)
+            line.remove()
+            self.subplots[subplot_id].legend()
+            self._refresh_all_plots()
+
+
+    def _refresh_all_plots(self):
+        for ax in self.subplots.values():
+            ax.relim()
+            ax.autoscale_view()
         self.canvas.draw()
 
 
-
-    def plot_old(self):
-        if not self.data or not self.selected_columns:
-            logger.info(f"No data columns selected > {self.selected_columns}")
-
-        #logger.info(f"Columns selected > {self.selected_columns}") 
-        # logger.info       
-
-        x_data = []
-        y_data = []
-
-        # Estrai colonne scelte
-        for i, row in enumerate(self.data):
-            x_val = None
-            y_val = None
-            for col_name, axis in self.selected_columns.items():
-                col_idx = self.header.index(col_name)
-                value = float(row[col_idx]) if row[col_idx] else None
-
-                if axis == "X":
-                    x_val = value
-                elif axis == "Y":
-                    y_val = value
-            
-            if x_val is not None and y_val is not None:
-                x_data.append(x_val)
-                y_data.append(y_val)
-
-        self.ax.plot(x_data, y_data)
-        self.ax.set_xlabel("X axis")
-        self.ax.set_ylabel("Y axis")
-        self.ax.set_title("Plot")
-
-        # Rimuovi grafici vecchi dalla graph_area
-        # for child in self.graph_area.get_children():
-        # self.graph_area.remove(child)
-
-        
-        self.canvas.show()
+    def _refresh_plot(self, subplot_id="default"):
+        ax = self.subplots[subplot_id]
+        ax.relim()
+        ax.autoscale_view()
+        self.canvas.draw()
