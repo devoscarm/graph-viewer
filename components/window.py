@@ -18,7 +18,7 @@ class Window(Gtk.ApplicationWindow):
         self.app_context = app_context
         self.window_context = WindowContext(window=self)
 
-        self.set_default_size(900, 600)
+        self.set_default_size(1000, 600)
         self.set_title('Nuova finestra')
 
         self.window_box = BoxBase()
@@ -66,3 +66,8 @@ class Window(Gtk.ApplicationWindow):
         self.present()
 
         logger.info(f"Created new window")
+
+
+
+    def set_square_plot():
+        return
