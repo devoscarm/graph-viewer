@@ -17,6 +17,11 @@ class PlotManager:
         self.canvas = FigureCanvas(self.figure)
         self.graph_area.append(self.canvas)
 
+        # For subplot settings on right sidebar
+        self.selected_axes = None
+        self.on_subplot_selected_callback = None
+        self.canvas.mpl_connect("button_press_event", self._on_click)
+
         # Provo a forzare il focus per gli scroll event
         # Infine non funziona, uso motion_notify_event
         # self.canvas.set_can_focus(True)
@@ -95,10 +100,20 @@ class PlotManager:
         ax.autoscale()
         self.canvas.draw()
 
+
+    # For subplot settings on right sidebar
+    def _on_click(self, event):
+        if event.inaxes in self.figure.axes:
+            self.selected_axes = event.inaxes
+            if self.on_subplot_selected_callback:
+                self.on_subplot_selected_callback(event.inaxes)
+
+
+
     # Funzioni per zoom, zoom reset e pan
 
     def on_mouse_press(self, event):
-        logger.debug(f"ON MOUSE PRESS > {event}")
+        # logger.debug(f"ON MOUSE PRESS > {event}")
 
         if event.inaxes is None:
             return
@@ -156,7 +171,7 @@ class PlotManager:
             self._pan_ax = ax
 
     def on_mouse_release(self, event):
-        logger.debug(f"ON MOUSE RELEASE > {event}")
+        # logger.debug(f"ON MOUSE RELEASE > {event}")
 
         if event.inaxes is None or self._zoom_start is None:
             return

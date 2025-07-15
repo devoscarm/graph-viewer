@@ -60,6 +60,9 @@ class Window(Gtk.ApplicationWindow):
 
         self.right_sidebar = RightSidebar()
         self.main_area.append(self.right_sidebar)
+
+        # Linking plot manager to right sidebar for plot settings
+        self.plot_manager.on_subplot_selected_callback = self.right_sidebar.set_axes
         
         
 
