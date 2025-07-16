@@ -5,6 +5,7 @@ from components.base import BoxBase
 from components.panel import OrizontalSeparator
 from widgets.file_selector import FileSelector
 from widgets.column_selector import ColumnSelector
+from widgets.plot_saver import PlotSaver
 
 from utils.data_manager import DataManager
 from utils.logger import get_logger
@@ -22,10 +23,12 @@ class SidebarBase(BoxBase):
         self.set_size_request(200, -1)
 
 class RightSidebar(SidebarBase):
-    def __init__(self):
+    def __init__(self, window_context):
         super().__init__()
         self.label.set_label("Right Sidebar")
         self.set_size_request(150, -1)
+
+        # self.window_context = window_context
 
         self.axes = None  # sarà impostato da plot_manager
 
@@ -65,6 +68,11 @@ class RightSidebar(SidebarBase):
         self.ylabel_entry = Gtk.Entry(placeholder_text="Y label")
         self.ylabel_entry.connect("changed", self.on_ylabel_changed)
         self.append(self.ylabel_entry)
+
+
+        self.append(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL))
+        self.plot_saver = PlotSaver(window_context)
+        self.append(self.plot_saver)
     
     # We set settings state on the real state on the plot
     def set_axes(self, axes):
