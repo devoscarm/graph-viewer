@@ -295,7 +295,7 @@ class PlotManager:
         # ax.set_ylim(new_ylim)
         self.canvas.draw()
 
-        logger.debug(f"Scroll zoom @ data coords: ({xdata:.2f}, {ydata:.2f})")
+        # logger.debug(f"Scroll zoom @ data coords: ({xdata:.2f}, {ydata:.2f})")
 
 
 

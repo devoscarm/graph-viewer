@@ -12,8 +12,8 @@ class DataManager:
         self.plot_manager = None
         self.current_curves = set()
 
-
-    def set_file(self, file_path):
+# In the future, will update Str to Path
+    def set_file(self, file_path: str):
         self.file_path = file_path
         self.parse_file(file_path)
 

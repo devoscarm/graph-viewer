@@ -7,6 +7,7 @@ from widgets.file_selector import FileSelector
 from widgets.column_selector import ColumnSelector
 from widgets.plot_saver import PlotSaver
 
+
 from utils.data_manager import DataManager
 from utils.logger import get_logger
 
@@ -23,7 +24,10 @@ class SidebarBase(BoxBase):
         self.set_size_request(200, -1)
 
 class RightSidebar(SidebarBase):
-    def __init__(self, window_context):
+    def __init__(self, 
+                window_context = None, # For plot_manager e and folder selector
+                settings_manager = None, # For saving defaults value
+        ):
         super().__init__()
         self.label.set_label("Right Sidebar")
         self.set_size_request(150, -1)
@@ -71,7 +75,10 @@ class RightSidebar(SidebarBase):
 
 
         self.append(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL))
-        self.plot_saver = PlotSaver(window_context)
+        self.plot_saver = PlotSaver(
+            window_context = window_context, # Needed for folder selector
+            settings_manager = settings_manager # For saving saving folder on file
+        )
         self.append(self.plot_saver)
     
     # We set settings state on the real state on the plot

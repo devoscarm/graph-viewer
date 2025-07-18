@@ -46,7 +46,10 @@ class Window(Gtk.ApplicationWindow):
         self.window_context.plot_manager = self.plot_manager
 
 
-        self.left_sidebar = LeftSidebar(self.window_context, self.app_context)
+        self.left_sidebar = LeftSidebar(
+            self.window_context, 
+            self.app_context
+        )
         self.main_area.append(self.left_sidebar)
 
         self.vertical_separator = VerticalSeparator()
@@ -58,7 +61,10 @@ class Window(Gtk.ApplicationWindow):
         self.main_area.append(self.vertical_separator1)
 
 
-        self.right_sidebar = RightSidebar(self.window_context)
+        self.right_sidebar = RightSidebar(
+            window_context = self.window_context, 
+            settings_manager = self.app_context.settings_manager,
+        )
         self.main_area.append(self.right_sidebar)
 
         # Linking plot manager to right sidebar for plot settings
