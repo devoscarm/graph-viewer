@@ -72,9 +72,12 @@ class RightSidebar(SidebarBase):
         self.ylabel_entry = Gtk.Entry(placeholder_text="Y label")
         self.ylabel_entry.connect("changed", self.on_ylabel_changed)
         self.append(self.ylabel_entry)
+        self.append(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL))
 
+        # self.append(Gtk.Box(orientation=Gtk.Orientation.VERTICAL, hexpand=True))
 
         self.append(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL))
+
         self.plot_saver = PlotSaver(
             window_context = window_context, # Needed for folder selector
             settings_manager = settings_manager # For saving saving folder on file

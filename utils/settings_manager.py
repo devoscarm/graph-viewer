@@ -67,26 +67,26 @@ class SettingsManager:
     def set_theme(self, theme):
         self.update_setting("theme", theme)
 
-    def get_plotting_directory(self):
+    def read_plotting_directory(self):
         return self.settings.get("plotting_directory", os.path.expanduser("~"))
     
-    def set_plotting_directory(self, folder_path):
+    def save_plotting_directory(self, folder_path):
         logger.info(f"Saving plotting directory {folder_path} on file {self.config_file}")
         self.settings["plotting_directory"] = folder_path
         self.save_settings()
 
-    def get_saving_directory(self):
+    def read_saving_directory(self):
         return self.settings.get("saving_directory", os.path.expanduser("~"))
 
-    def set_saving_directory(self, folder_path):
+    def save_saving_directory(self, folder_path):
         logger.info(f"Saving saving directory {folder_path} on file {self.config_file} ")
         self.settings["saving_directory"] = folder_path
         self.save_settings()
 
-    def get_last_file_opened(self):
+    def read_last_file_opened(self):
         return self.settings.get("last_file_opened", None)
 
-    def set_last_file_opened(self, file_name):
+    def save_last_file_opened(self, file_name):
         logger.info(f"Saving last file opened {file_name} on file {self.config_file}")
         self.settings["last_file_opened"] = file_name
         self.save_settings()

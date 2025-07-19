@@ -34,9 +34,9 @@ class FileSelector(Gtk.Box):
         self.plotting_directory = None
         self.file_path = None
         if self.settings_manager:
-            self.plotting_directory = Path(self.settings_manager.get_plotting_directory())
-            if self.settings_manager.get_last_file_opened():
-                self.file_path = Path(self.settings_manager.get_last_file_opened())
+            self.plotting_directory = Path(self.settings_manager.read_plotting_directory())
+            if self.settings_manager.read_last_file_opened():
+                self.file_path = Path(self.settings_manager.read_last_file_opened())
 
         
         # Blocco selezione directory
@@ -45,7 +45,7 @@ class FileSelector(Gtk.Box):
 
         self.folder_selector = FolderSelector(
             parent_window=self.parent_window,
-            on_folder_selected_callback=self.save_plotting_directory
+            on_folder_selected_callback=self.set_plotting_directory
         )
         self.dir_selector.append(self.folder_selector)
 
@@ -94,19 +94,19 @@ class FileSelector(Gtk.Box):
         self.file_name.set_label(self.file_path.name)
         if self.on_file_selected_callback:
             self.on_file_selected_callback(str(self.file_path))  # keep str if callback expects it
-        self.save_last_file_opened()
+        self.set_last_file_opened()
 
 
-    def save_last_file_opened(self):
+    def set_last_file_opened(self):
         """
             Saving "last file opened" on file
         """
 
         # logger.info(f"Saving 'last file opened' on file > {self.file_path}")
-        self.settings_manager.set_last_file_opened(str(self.file_path))
+        self.settings_manager.save_last_file_opened(str(self.file_path))
 
 
-    def save_plotting_directory(self, folder_path):
+    def set_plotting_directory(self, folder_path):
         """
             Callback function for saving the plotting directory on file
         """
@@ -116,7 +116,7 @@ class FileSelector(Gtk.Box):
         self.dir_label.set_label(folder_path)
 
         if self.settings_manager:
-            self.settings_manager.set_plotting_directory(folder_path)
+            self.settings_manager.save_plotting_directory(folder_path)
 
     
 
